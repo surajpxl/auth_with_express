@@ -65,35 +65,50 @@ const signin = async (req, res) => {
         email,
       })
       .select("+password");
-  
-      if(!user || user.password !== password){
-        return res.status(400).json({
-          success:false,
-          message:"Invalid credencials"
-        })
-      }
-  
-      const token = user.jwtToken();
-      user.password = undefined;
-  
-      const cookieOption = {
-        maxAge: 24 * 60 * 60 * 1000,
-        httpOnly: true
-      }
-  
-      res.cookie("token", token, cookieOption)
-      res.status(200).json({
-        success: true,
-        data: user
-      })
+
+    if (!user || user.password !== password) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid credencials",
+      });
+    }
+
+    const token = user.jwtToken();
+    user.password = undefined;
+
+    const cookieOption = {
+      maxAge: 24 * 60 * 60 * 1000,
+      httpOnly: true,
+    };
+
+    res.cookie("token", token, cookieOption);
+    res.status(200).json({
+      success: true,
+      data: user,
+    });
   } catch (error) {
     return res.status(400).json({
       success: false,
-      message: error.message
-    })
-    
+      message: error.message,
+    });
   }
-
 };
 
-module.exports = { signup, signin };
+const getUser = (res, res, next)=> {
+  const userId = req.user.id;
+
+  try {
+    const user = userModel.findById(userId);
+    return res.status(200).json({
+      success:true,
+      message:user
+    })
+  } catch (error) {
+    return res.status(400).json({
+      success:false,
+      message:error.message
+    })
+  }
+}
+
+module.exports = { signup, signin, getUser };
