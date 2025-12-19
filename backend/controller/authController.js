@@ -1,5 +1,6 @@
 const userModel = require("../model/userSchema");
 const emailValidator = require("email-validator");
+const bcrypt = require('bcrypt')
 
 const signup = async (req, res, next) => {
   const { name, email, password, confirmPassword } = req.body;
@@ -66,7 +67,8 @@ const signin = async (req, res) => {
       })
       .select("+password");
 
-    if (!user || user.password !== password) {
+    // if (!user || user.password !== password) {
+    if (!user || !(bcrypt.compare(password, user.password))) {
       return res.status(400).json({
         success: false,
         message: "Invalid credencials",
@@ -94,21 +96,41 @@ const signin = async (req, res) => {
   }
 };
 
-const getUser = (res, res, next)=> {
+const getUser = async (req, res, next) => {
   const userId = req.user.id;
 
   try {
-    const user = userModel.findById(userId);
+    const user = await userModel.findById(userId);
     return res.status(200).json({
-      success:true,
-      message:user
-    })
+      success: true,
+      data: user,
+    });
   } catch (error) {
     return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+  next();
+};
+
+const logout = (req, res) => {
+  try {
+    const cookieOption = {
+      expires: new Date(),
+      httpOnly: true
+    };
+    res.cookie("token", null, cookieOption)
+    res.status(200).json({
+      success: true,
+      message:"Logged Out"
+    })
+  } catch (error) {
+    res.status(400).json({
       success:false,
-      message:error.message
+      message: error.message
     })
   }
 }
 
-module.exports = { signup, signin, getUser };
+module.exports = { signup, signin, getUser, logout };
