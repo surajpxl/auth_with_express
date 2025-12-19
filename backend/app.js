@@ -3,12 +3,17 @@ const app = express();
 const authRouter = require('./Router/authRoute');
 const databaseConnect = require('./config/databaseConfig');
 const cookieParser = require('cookie-parser');
+const cors = require('cors')
 
 databaseConnect();
 
 // middleware to read JSON body
 app.use(express.json());
 app.use(cookieParser())
+app.use(cors({
+    origin: [process.env.CLIENT_URL],
+    credentials: true
+}))
 
 // routes
 app.use('/api/auth', authRouter);
